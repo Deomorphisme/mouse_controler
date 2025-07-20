@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle de la souris</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+        }
+        #touchZone {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border: 1px solid #000;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contrôle de la souris</h1>
+    <div id="touchZone"></div>
+    <button onclick="clickMouse()">Cliquer</button>
+
+    <script>
+        const touchZone = document.getElementById('touchZone');
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+
+        touchZone.addEventListener('touchstart', function(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+        }, {passive: false});
+
+        touchZone.addEventListener('touchmove', function(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            const deltaX = touch.clientX - lastTouchX;
+            const deltaY = touch.clientY - lastTouchY;
+
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+
+            fetch('/move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({deltaX: deltaX, deltaY: deltaY}),
+            })
+            .then(response => response.json())
+            .then(data => console.log(data));
+        }, {passive: false});
+
+        function clickMouse() {
+            fetch('/click', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => console.log(data));
+        }
+    </script>
+</body>
+</html>
