@@ -4,10 +4,13 @@ A little script when your wireless mouse turns off.
 ## To make it work
 
 ```zsh
-python3 -m venv mouse_env # or mouse_controler or whatever_you_want
-source mouse_env/bin/activate
+pip clone https://github.com/Deomorphisme/mouse_controler.git
+cd mouse_controler
+
+python3 -m venv mouse_ctrl # or mouse_env or whatever_you_want
+source mouse_ctrl/bin/activate
 pip install --upgrade pip
-pip install flask pyautogui
+pip install flask pyautogui flask-socketio
 
 python3 server.py
 ```
