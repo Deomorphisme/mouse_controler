@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrôle de la souris</title>
+    <title>Mouse control</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
+            overflow: hidden;
         }
         button {
             padding: 10px 20px;
@@ -17,21 +18,27 @@
             margin: 10px;
         }
         #touchZone {
-            width: 300px;
-            height: 300px;
             margin: 20px auto;
-            border: 1px solid #000;
             touch-action: none;
+            background-color: #f0f0f0;
+            border-radius: 20px; /* Arrondi les bords */
+            border: none; /* Supprime le contour */
         }
     </style>
 </head>
 <body>
-    <h1>Contrôle de la souris</h1>
+    <h1>Mouse control</h1>
     <div id="touchZone"></div>
 
     <script>
         const socket = io();
         const touchZone = document.getElementById('touchZone');
+
+        // Set the touchZone to be a square with width equal to screen width minus 40 pixels
+        const screenWidth = window.innerWidth - 40;
+        touchZone.style.width = screenWidth + 'px';
+        touchZone.style.height = screenWidth + 'px';
+
         let lastTouchX = 0;
         let lastTouchY = 0;
         let touchCount = 0;
@@ -42,18 +49,30 @@
         touchZone.addEventListener('touchstart', function(event) {
             event.preventDefault();
             if (!isMoving) {
-                // Start long press timer
+                // Start long press timer for right click
                 longPressTimer = setTimeout(function() {
-                    // Long press detected
+                    // Long press detected, trigger right click
                     socket.emit('rightClick');
-                }, 500); // Time threshold for long press (e.g., 500ms)
+                }, 500); // 500ms threshold for long press
+
+                touchCount++;
+                if (touchCount === 1) {
+                    touchTimer = setTimeout(function() {
+                        // Single click detected if no long press
+                        clearTimeout(longPressTimer);
+                        socket.emit('click');
+                        touchCount = 0;
+                    }, 600); // Slightly longer than long press to ensure it doesn't interfere
+                }
             }
         }, {passive: false});
 
         touchZone.addEventListener('touchmove', function(event) {
             event.preventDefault();
             isMoving = true;
-            clearTimeout(longPressTimer); // Clear long press timer on movement
+            clearTimeout(longPressTimer);
+            clearTimeout(touchTimer);
+            touchCount = 0;
 
             const touch = event.touches[0];
             const deltaX = touch.clientX - lastTouchX;
@@ -67,13 +86,13 @@
 
         touchZone.addEventListener('touchend', function(event) {
             event.preventDefault();
-            clearTimeout(longPressTimer); // Clear long press timer on touch end
-
-            if (!isMoving) {
-                // Simple touch detected
+            clearTimeout(longPressTimer);
+            if (!isMoving && touchCount === 1) {
+                clearTimeout(touchTimer);
+                // Handle single touch if no movement and no long press
                 socket.emit('click');
+                touchCount = 0;
             }
-
             isMoving = false;
         }, {passive: false});
     </script>
