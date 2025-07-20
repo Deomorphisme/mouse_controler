@@ -12,4 +12,4 @@ pip install flask pyautogui
 python3 server.py
 ```
 
-Next, go to `http://<your-computer-ip>:10270` using your mobile web browser and voila!.
+Next, go to `http://<your-computer-ip>:10270` using your mobile web browser and voila!
